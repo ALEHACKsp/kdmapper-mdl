@@ -165,8 +165,8 @@ namespace intel_driver
 	uint64_t MmAllocatePagesForMdl(HANDLE device_handle, LARGE_INTEGER LowAddress, LARGE_INTEGER HighAddress, LARGE_INTEGER SkipBytes, SIZE_T TotalBytes, MEMORY_CACHING_TYPE CacheType, ULONG Flags);
 	uint64_t MmMapLockedPagesSpecifyCache(HANDLE device_handle, uint64_t pmdl, KPROCESSOR_MODE AccessMode, MEMORY_CACHING_TYPE CacheType, uint64_t RequestedAddress, ULONG BugCheckOnFailure, ULONG Priority);
 	bool MmProtectMdlSystemAddress(HANDLE device_handle, uint64_t MemoryDescriptorList, ULONG NewProtect);
-	bool MmUnmapLockedPages(HANDLE device_handle, uint64_t BaseAddress, uint64_t pmdl);
-	bool MmUnlockPages(HANDLE device_handle, uint64_t MemoryDescriptorList);
+	//bool MmUnmapLockedPages(HANDLE device_handle, uint64_t BaseAddress, uint64_t pmdl);
+	//bool MmUnlockPages(HANDLE device_handle, uint64_t MemoryDescriptorList);
 	bool IoFreeMdl(HANDLE device_handle, uint64_t Mdl);
 	/**/
 

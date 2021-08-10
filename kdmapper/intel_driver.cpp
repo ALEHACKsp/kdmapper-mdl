@@ -305,7 +305,7 @@ bool intel_driver::MmProtectMdlSystemAddress(HANDLE device_handle, uint64_t Memo
 	return NT_SUCCESS(status);
 }
 
-bool intel_driver::MmUnmapLockedPages(HANDLE device_handle, uint64_t BaseAddress, uint64_t pmdl)
+/*bool intel_driver::MmUnmapLockedPages(HANDLE device_handle, uint64_t BaseAddress, uint64_t pmdl)
 {
 	static uint64_t kernel_MmUnmapLockedPages = GetKernelModuleExport(device_handle, intel_driver::ntoskrnlAddr, "MmUnmapLockedPages");
 
@@ -331,7 +331,7 @@ bool intel_driver::MmUnlockPages(HANDLE device_handle, uint64_t MemoryDescriptor
 
 	void* result;
 	return CallKernelFunction(device_handle, &result, kernel_MmUnlockPages, MemoryDescriptorList);
-}
+}*/
 
 bool intel_driver::IoFreeMdl(HANDLE device_handle, uint64_t Mdl)
 {
