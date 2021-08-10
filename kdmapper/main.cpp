@@ -52,19 +52,16 @@ int wmain(const int argc, wchar_t** argv) {
 	}
 
 	iqvw64e_device_handle = intel_driver::Load();
-	Sleep(10000);
 
 	if (iqvw64e_device_handle == INVALID_HANDLE_VALUE)
 		return -1;
 
 	if (!kdmapper::MapDriver(iqvw64e_device_handle, driver_path, 0, 0, free, true)) {
 		Log(L"[-] Failed to map " << driver_path << std::endl);
-		Sleep(10000);
 		intel_driver::Unload(iqvw64e_device_handle);
 		return -1;
 	}
 
 	intel_driver::Unload(iqvw64e_device_handle);
 	Log(L"[+] success" << std::endl);
-	Sleep(10000);
 }

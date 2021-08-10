@@ -42,8 +42,8 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 	}
 	Log(L"[+] Allocated pages for mdl" << std::endl);
 
-	auto mapping = intel_driver::MmMapLockedPagesSpecifyCache(iqvw64e_device_handle, mdl, intel_driver::KernelMode, intel_driver::MmNonCached, NULL, FALSE, intel_driver::NormalPagePriority);
-	if (!mapping)
+	auto mappingStartAddress = intel_driver::MmMapLockedPagesSpecifyCache(iqvw64e_device_handle, mdl, intel_driver::KernelMode, intel_driver::MmNonCached, NULL, FALSE, intel_driver::NormalPagePriority);
+	if (!mappingStartAddress)
 	{
 		Log(L"[Failed] Couldn't map the physical pages from the mdl" << std::endl);
 		return 0;
@@ -59,10 +59,10 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 	}
 	Log(L"[+] Set the protection type for the memory range to PAGE_EXECUTE_READWRITE" << std::endl);
 
-	const auto base = mapping;
+	const auto base = mappingStartAddress;
 	do
 	{
-		if (!mapping)
+		if (!mappingStartAddress)
 		{
 			Log(L"[-] Failed to allocate remote image in kernel" << std::endl);
 			break;
@@ -77,27 +77,27 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 			memcpy(local_section, reinterpret_cast<void*>(reinterpret_cast<uint64_t>(raw_image.data()) + current_image_section[i].PointerToRawData), current_image_section[i].SizeOfRawData);
 		}
 
-		uint64_t realBase = mapping;
+		uint64_t realBase = mappingStartAddress;
 		if (destroyHeader) {
-			mapping -= TotalVirtualHeaderSize;
+			mappingStartAddress -= TotalVirtualHeaderSize;
 			Log(L"[+] Skipped 0x" << std::hex << TotalVirtualHeaderSize << L" bytes of PE Header" << std::endl);
 		}
 
-		RelocateImageByDelta(portable_executable::GetRelocs(local_image_base), mapping - nt_headers->OptionalHeader.ImageBase);
+		RelocateImageByDelta(portable_executable::GetRelocs(local_image_base), mappingStartAddress - nt_headers->OptionalHeader.ImageBase);
 
 		if (!ResolveImports(iqvw64e_device_handle, portable_executable::GetImports(local_image_base))) {
 			Log(L"[-] Failed to resolve imports" << std::endl);
-			mapping = realBase;
+			mappingStartAddress = realBase;
 			break;
 		}
 
 		if (!intel_driver::WriteMemory(iqvw64e_device_handle, realBase, (PVOID)((uintptr_t)local_image_base + (destroyHeader ? TotalVirtualHeaderSize : 0)), image_size - (destroyHeader ? TotalVirtualHeaderSize : 0))) {
 			Log(L"[-] Failed to write local image to remote image" << std::endl);
-			mapping = realBase;
+			mappingStartAddress = realBase;
 			break;
 		}
 
-		const uint64_t address_of_entry_point = mapping + nt_headers->OptionalHeader.AddressOfEntryPoint;
+		const uint64_t address_of_entry_point = mappingStartAddress + nt_headers->OptionalHeader.AddressOfEntryPoint;
 
 		Log(L"[<] Calling DriverEntry 0x" << reinterpret_cast<void*>(address_of_entry_point) << std::endl);
 
@@ -105,13 +105,13 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 
 		if (!intel_driver::CallKernelFunction(iqvw64e_device_handle, &status, address_of_entry_point, mdl, param2)) {
 			Log(L"[-] Failed to call driver entry" << std::endl);
-			mapping = realBase;
+			mappingStartAddress = realBase;
 			break;
 		}
 
 		if (free)
 		{
-			intel_driver::MmUnmapLockedPages(iqvw64e_device_handle, mapping, mdl);
+			intel_driver::MmUnmapLockedPages(iqvw64e_device_handle, mappingStartAddress, mdl);
 			intel_driver::MmUnlockPages(iqvw64e_device_handle, mdl);
 			intel_driver::IoFreeMdl(iqvw64e_device_handle, mdl);
 		}
@@ -121,7 +121,7 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 	} while (false);
 
 	VirtualFree(local_image_base, 0, MEM_RELEASE);
-	intel_driver::MmUnmapLockedPages(iqvw64e_device_handle, mapping, mdl);
+	intel_driver::MmUnmapLockedPages(iqvw64e_device_handle, mappingStartAddress, mdl);
 	intel_driver::MmUnlockPages(iqvw64e_device_handle, mdl);
 	intel_driver::IoFreeMdl(iqvw64e_device_handle, mdl);
 	
