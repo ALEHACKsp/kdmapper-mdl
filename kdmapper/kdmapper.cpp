@@ -128,10 +128,15 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 		Log(L"[+] DriverEntry returned 0x" << std::hex << status << std::endl);
 
 		if (free && mdlMode)
+		{
+			intel_driver::MmUnmapLockedPages(iqvw64e_device_handle, mdlInfo.startingAddress, mdlInfo.mdl);
 			intel_driver::IoFreeMdl(iqvw64e_device_handle, mdlInfo.mdl);
+		} 
 		else if (free)
+		{
 			intel_driver::FreePool(iqvw64e_device_handle, realBase);
-		
+		}
+
 		VirtualFree(local_image_base, 0, MEM_RELEASE);
 		return realBase;
 
