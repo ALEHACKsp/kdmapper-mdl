@@ -51,7 +51,7 @@ uint64_t kdmapper::MapDriver(HANDLE iqvw64e_device_handle, const std::wstring& d
 	Log(L"[+] Mapped the physical pages from the mdl" << std::endl);
 
 
-	auto result = intel_driver::MmProtectMdlSystemAddress(iqvw64e_device_handle, mdl, PAGE_EXECUTE_READWRITE);
+	const auto result = intel_driver::MmProtectMdlSystemAddress(iqvw64e_device_handle, mdl, PAGE_EXECUTE_READWRITE);
 	if (!result)
 	{
 		Log(L"[Failed] Couldn't set protection type for the memory range" << std::endl);
