@@ -320,6 +320,21 @@ bool intel_driver::MmUnmapLockedPages(HANDLE device_handle, uint64_t BaseAddress
 	return CallKernelFunction(device_handle, &result, kernel_MmUnmapLockedPages, BaseAddress, pmdl);
 }
 
+bool intel_driver::MmFreePagesFromMdl(HANDLE device_handle, uint64_t MemoryDescriptorList)
+{
+	static uint64_t kernel_MmFreePagesFromMdl = GetKernelModuleExport(device_handle, intel_driver::ntoskrnlAddr, "MmFreePagesFromMdl");
+
+	if (!kernel_MmFreePagesFromMdl)
+	{
+		Log(L"[!] Failed to find MmFreePagesFromMdl" << std::endl);
+		return 0;
+	}
+
+	void* result;
+	return CallKernelFunction(device_handle, &result, kernel_MmFreePagesFromMdl, MemoryDescriptorList);
+}
+
+
 bool intel_driver::MmUnlockPages(HANDLE device_handle, uint64_t MemoryDescriptorList)
 {
 	static uint64_t kernel_MmUnlockPages = GetKernelModuleExport(device_handle, intel_driver::ntoskrnlAddr, "MmUnlockPages");
